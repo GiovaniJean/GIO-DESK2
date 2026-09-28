@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Trade Journal</title>
+<style>
+:root{--bg:#121212;--card:#171717;--cell:#1c1c1c;--line:#2b2b2b;--tx:#ececec;--mu:#a3a3a3;--g:#1fae8f;--r:#f0304a;--blue:#3050ff}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{color:var(--tx);font:13px/1.35 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:6px 12px 40px;-webkit-font-smoothing:antialiased}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+.red{color:var(--r)}.grn{color:var(--g)}.mu{color:var(--mu)}
+.bar{display:flex;gap:10px;align-items:center;margin:4px 0 22px;flex-wrap:wrap}
+.sel{background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23aaa' fill='none'/%3E%3C/svg%3E") no-repeat right 12px center;border:1px solid var(--line);border-radius:6px;padding:7px 34px 7px 12px;min-width:230px;appearance:none;-webkit-appearance:none;font-weight:500}
+.sel.sm{min-width:115px}
+.ctx{font-size:11px;color:#cfcfcf}
+.sp{flex:1}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:6px 10px;display:inline-flex;gap:6px;align-items:center;font-weight:600}
+.btn:hover{border-color:#484848}
+.btn svg{width:14px;height:14px}
+.btn.pri{background:var(--blue);border-color:var(--blue)}
+.btn.dng{color:var(--r)}
+.grid{display:grid;gap:16px;margin-bottom:22px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.gm{grid-template-columns:2.05fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;min-width:0}
+.bd{padding:22px 22px 12px;flex:1;display:flex;flex-direction:column}
+.ft{border-top:1px solid var(--line);padding:24px 22px;display:flex;justify-content:space-between;font-size:12px;color:#c9c9c9}
+h3{font-size:13px;font-weight:700;margin-bottom:20px}
+.lbl{font-size:11px;color:#c9c9c9}
+.big{font-size:18px;font-weight:700;margin-top:6px}
+.gauge{display:block;width:170px;margin:44px auto 8px}
+.lr{display:flex;align-items:center;font-size:11px;margin-top:8px;color:#d6d6d6}
+.lr span{flex:1}.lr b{min-width:24px;text-align:right}.lr em{font-style:normal;width:44px;text-align:right}
+.dot{width:7px;height:7px;border-radius:50%;margin-right:7px;display:inline-block;flex:none}
+.row{display:flex;justify-content:space-between;font-size:11px}
+.hb{height:28px;background:#222;border-radius:2px;margin:8px 0 22px;overflow:hidden}
+.hb i{display:block;height:100%}
+/* calendar */
+.calhd{display:flex;justify-content:space-between;align-items:flex-end}
+.wl{font-size:12px;color:#d0d0d0}
+.cal{display:grid;grid-template-columns:repeat(8,1fr);gap:6px 8px;margin-top:22px}
+.dh{text-align:center;font-size:11px;color:#d0d0d0;padding-bottom:4px}
+.cell{height:72px;background:var(--cell);border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:#d8d8d8;cursor:pointer;position:relative;border:2px solid transparent}
+.cell.hatch{background:repeating-linear-gradient(135deg,#1a1a1a 0 5px,#252525 5px 6px)}
+.cell.out,.cell.wk{cursor:default}
+.cell.fut span{color:#555}
+.cell.pos{background:#10322a}.cell.neg{background:#3d1419}.cell.be{background:#262626}
+.cell.sel{border-color:var(--blue)}
+.cell b{font-size:10px}.cell.pos b{color:var(--g)}.cell.neg b{color:var(--r)}
+.cell small{font-size:8px;color:#ccc}
+.cell.wk{border:1px dashed #353535;background:transparent;color:#555}
+.nd{position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:#e8b43a}
+.calft{padding:12px 22px;font-size:10px;align-items:center}
+.nav{display:flex;gap:8px;align-items:center}
+.nav button{border:1px solid var(--line);border-radius:3px;min-width:18px;height:18px;line-height:14px;color:#aaa;padding:0 4px}
+.nav .tb{font-size:9px;padding:0 6px}
+/* evaluation */
+.ev h4{font-size:10px;letter-spacing:.06em;color:#cfcfcf;margin:16px 0 18px;font-weight:600}
+.er{display:flex;align-items:center;font-size:11px;margin-bottom:20px;color:#d6d6d6}
+.er span{flex:1}.er b{margin-right:8px}
+.q{width:11px;height:11px;border:1px solid #555;border-radius:50%;font-size:7px;display:inline-flex;align-items:center;justify-content:center;color:#777;font-style:normal}
+hr{border:0;border-top:1px solid var(--line);margin:4px 0 8px}
+.l5{display:inline-flex;gap:3px}.l5 i{width:10px;height:10px;border-radius:2px}
+/* charts */
+.chart{width:100%;height:210px;display:block;margin-top:14px}
+.empty{height:210px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px}
+.eqh{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.ks{display:flex;gap:28px;flex-wrap:wrap}
+.ks div{font-size:10px;color:#cfcfcf;letter-spacing:.04em}
+.ks b{display:block;font-size:12px;margin-top:6px;color:var(--tx)}
+.radar{width:100%;max-width:300px;height:230px;margin:auto;display:block}
+/* table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid #232323;white-space:nowrap}
+.num{text-align:right}
+.mu2{color:#c9c9c9}
+.pill{display:inline-flex;gap:3px;padding:2px 7px;border-radius:4px;background:#12352c;color:var(--g);font-size:10px;border:1px solid #1c4a3e}
+.pill.s{background:#3a1519;color:var(--r);border-color:#5a1f26}
+.acts{display:flex;gap:4px;justify-content:flex-end}
+.acts button{width:22px;height:22px;color:#bbb;display:inline-flex;align-items:center;justify-content:center}
+.acts button:hover{color:#fff}
+.acts svg{width:14px;height:14px}
+.th{display:flex;align-items:center;gap:12px;padding:22px 22px 14px}
+.th h3{margin:0;flex:1}
+.chk{display:flex;align-items:center;gap:6px;font-size:12px}
+.chk input{accent-color:var(--blue);width:15px;height:15px}
+.tf{display:flex;justify-content:space-between;align-items:center;padding:12px 22px;font-size:11px;color:#cfcfcf;gap:10px;flex-wrap:wrap}
+.pg{display:flex;align-items:center;gap:6px}
+.pg button{border:1px solid var(--line);border-radius:3px;width:20px;height:20px;color:#aaa}
+.pg input{width:36px;text-align:center;background:#101010;border:1px solid var(--line);border-radius:3px;padding:2px}
+.rs{background:#101010;border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+/* modal */
+.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:9;padding:16px}
+.modal.hidden{display:none}
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px;width:100%;max-width:540px;max-height:90vh;overflow:auto}
+.box p{font-size:12px;margin-bottom:14px}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fg label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mu)}
+.fg input,.fg select,.fg textarea,.box textarea{background:#101010;border:1px solid var(--line);border-radius:5px;padding:7px 9px;width:100%}
+.full{grid-column:1/-1}
+.mact{display:flex;gap:8px;margin-top:16px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:12px}.kv span{color:var(--mu)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#262626;border:1px solid #3a3a3a;padding:9px 14px;border-radius:6px;font-size:12px;z-index:10}
+@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.gm,.g3{grid-template-columns:1fr}}
+@media(max-width:620px){.g4{grid-template-columns:1fr}.sel{min-width:0;flex:1}.cell{height:54px}.cal{gap:4px}.ctx{width:100%}.fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <select id="fAcc" class="sel"></select>
+  <select id="fStatus" class="sel sm" style="min-width:145px">
+    <option value="all">All statuses</option><option value="win">Wins</option><option value="loss">Losses</option><option value="be">Breakeven</option>
+  </select>
+  <select id="fRange" class="sel sm">
+    <option value="today">Today</option><option value="yesterday">Yesterday</option><option value="week">This week</option>
+    <option value="month">This month</option><option value="30d">Last 30 days</option><option value="all">All time</option>
+  </select>
+  <span id="ctx" class="ctx"></span>
+  <div class="sp"></div>
+  <div id="barBtns" style="display:flex;gap:8px"></div>
+</div>
+<div id="app"></div>
+<div id="modal" class="modal hidden"><div class="box" id="mbox"></div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const PV={GC:100,MGC:10,SI:5000,SIL:1000,HG:25000,MHG:2500,CL:1000,MCL:100,QM:500,NG:10000,ES:50,MES:5,NQ:20,MNQ:2,YM:5,MYM:.5,RTY:50,M2K:5,ZB:1000,ZN:1000,ZF:1000,'6E':125000,'6B':62500,'6A':100000,'6J':12500000,M6E:12500};
+const root=c=>{c=String(c||'').toUpperCase().trim();const m=c.match(/^(.+?)[FGHJKMNQUVXZ]\d{1,2}$/);return m?m[1]:c};
+const r2=v=>Math.round(v*100)/100;
+const calcPnl=t=>r2((t.exit-t.entry)*(t.side==='Short'?-1:1)*t.qty*(PV[root(t.contract)]??1)-t.fee-t.comm);
+const K={t:'tj.trades.v1',n:'tj.notes.v1',s:'tj.settings.v1'};
+const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch{return d}};
+const save=()=>{localStorage.setItem(K.t,JSON.stringify(trades));localStorage.setItem(K.n,JSON.stringify(notes));localStorage.setItem(K.s,JSON.stringify(settings))};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const tkey=t=>[t.time,t.contract,t.entry,t.exit,t.qty,t.account].join('|');
+
+function seed(){
+  const A='MFFUEVREOD200440155',raw=[
+    [28,1,4,4229.4,4228.2,21],[28,1,3,4229.4,4229.4,36],[28,1,1,4228.7,4228.8,56],[28,1,0,4227.8,4228.2,34],[28,0,59,4230.4,4228.4,3588],
+    [27,23,58,4227,4230,567],[27,23,46,4228.9,4224.9,305],[27,23,40,4226,4227.2,275],[27,23,32,4229.4,4230.2,146],[27,23,29,4229,4229.4,154]];
+  return raw.map(([d,h,mi,en,ex,du])=>{const t={id:uid(),time:new Date(2026,8,d,h,mi).toISOString(),account:A,contract:'GCZ6',side:'Long',qty:1,entry:en,exit:ex,duration:du,fee:3,comm:1,note:''};t.pnl=calcPnl(t);return t});
+}
+let trades=load(K.t,null);if(!Array.isArray(trades))trades=seed();
+let notes=load(K.n,{}),settings=load(K.s,{fee:3,comm:1});save();
+
+/* ---------- helpers ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const tday=x=>{const d=new Date(x);if(d.getHours()>=18)d.setDate(d.getDate()+1);return ymd(d)}; // futures session rolls at 6 PM
+const fdate=s=>pd(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+const money=(v,dec=2,plus=false)=>(v<0?'-':plus&&v>0?'+':'')+'$'+Math.abs(v).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+const cls=v=>v>0?'grn':v<0?'red':'';
+const dc=v=>v>0?'var(--g)':v<0?'var(--r)':'transparent';
+const dur=s=>{s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}h ${m}m`:m?`${m}m ${x}s`:`${x}s`};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct=(a,b)=>b?Math.round(a/b*100)+'%':'0%';
+const toLocalInput=iso=>{const d=new Date(iso);return`${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`};
+const toast=m=>{const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600)};
+const SV='viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
+const I={
+  info:`<svg ${SV}><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>`,
+  note:`<svg ${SV}><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>`,
+  share:`<svg ${SV}><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/></svg>`,
+  notes:`<svg ${SV}><path d="M4 4h11l5 5v11H4z"/><path d="M8 13h8M8 17h5"/></svg>`,
+  dl:`<svg ${SV}><path d="M12 4v11M7 10l5 5 5-5M4 20h16"/></svg>`,
+  up:`<svg ${SV}><path d="M12 19V5M5 12l7-7 7 7"/></svg>`,
+  plus:`<svg ${SV}><path d="M12 5v14M5 12h14"/></svg>`};
+$('#barBtns').innerHTML=`<button class="btn" data-act="import">${I.up}Import</button><button class="btn" data-act="add">${I.plus}Trade</button><button class="btn" data-act="notes">${I.notes}Notes</button>`;
+
+/* ---------- state & filters ---------- */
+const S={acc:'all',status:'all',range:'today',sel:null,month:null,page:1,rows:20};
+{const t=pd(tday(new Date()));S.month=new Date(t.getFullYear(),t.getMonth(),1)}
+const RL={today:'Today',yesterday:'Yesterday',week:'This week',month:'This month','30d':'Last 30 days',all:'All time'};
+const accOk=t=>S.acc==='all'||t.account===S.acc;
+const stOk=t=>S.status==='all'||(S.status==='win'?t.pnl>0:S.status==='loss'?t.pnl<0:t.pnl===0);
+function range(){
+  if(S.sel)return[S.sel,S.sel];
+  const t=pd(tday(new Date())),x=new Date(t);
+  switch(S.range){
+    case'today':return[ymd(t),ymd(t)];
+    case'yesterday':x.setDate(x.getDate()-1);while(x.getDay()===0||x.getDay()===6)x.setDate(x.getDate()-1);return[ymd(x),ymd(x)];
+    case'week':x.setDate(x.getDate()-((x.getDay()+6)%7));return[ymd(x),ymd(t)];
+    case'month':x.setDate(1);return[ymd(x),ymd(t)];
+    case'30d':x.setDate(x.getDate()-29);return[ymd(x),ymd(t)];
+    default:return['0000-00-00','9999-99-99'];
+  }
+}
+function filtered(){const[a,b]=range();return trades.filter(t=>{const d=tday(t.time);return accOk(t)&&stOk(t)&&d>=a&&d<=b})}
+
+/* ---------- stats ---------- */
+function stats(ts){
+  const a=[...ts].sort((x,y)=>new Date(x.time)-new Date(y.time)),n=a.length;
+  const w=a.filter(t=>t.pnl>0),l=a.filter(t=>t.pnl<0),be=n-w.length-l.length;
+  const gp=r2(w.reduce((s,t)=>s+t.pnl,0)),gl=r2(-l.reduce((s,t)=>s+t.pnl,0)),net=r2(gp-gl);
+  const pf=gl?gp/gl:gp?Infinity:0,aw=w.length?gp/w.length:0,al=l.length?gl/l.length:0,wr=n?w.length/n:0;
+  const dm={};a.forEach(t=>{const d=tday(t.time);(dm[d]??={p:0,n:0});dm[d].p=r2(dm[d].p+t.pnl);dm[d].n++});
+  const days=Object.keys(dm).sort().map(d=>({d,...dm[d]}));
+  let eq=0,pk=0,mdd=0;const curve=[0],ddc=[0];
+  a.forEach(t=>{eq=r2(eq+t.pnl);pk=Math.max(pk,eq);const dd=r2(eq-pk);mdd=Math.min(mdd,dd);curve.push(eq);ddc.push(dd)});
+  let cw=0,cl=0,bw=0,bl=0;
+  a.forEach(t=>{if(t.pnl>0){cw++;cl=0}else if(t.pnl<0){cl++;cw=0}else cw=cl=0;bw=Math.max(bw,cw);bl=Math.max(bl,cl)});
+  let sharpe=null,sortino=null;
+  if(days.length>1){
+    const r=days.map(x=>x.p),m=r.reduce((s,x)=>s+x,0)/r.length;
+    const sd=Math.sqrt(r.reduce((s,x)=>s+(x-m)**2,0)/(r.length-1)),ds=Math.sqrt(r.reduce((s,x)=>s+Math.min(x,0)**2,0)/r.length);
+    if(sd)sharpe=m/sd*Math.sqrt(252);if(ds)sortino=m/ds*Math.sqrt(252);
+  }
+  const ratio=al?aw/al:aw?2:0;
+  const ax={wl:Math.min(ratio,1),wr,pf:Math.min((isFinite(pf)?pf:3)/1.5,1)};
+  return{a,n,w:w.length,l:l.length,be,gp,gl,net,pf,aw,al,wr,exp:n?net/n:0,days,
+    winD:days.filter(x=>x.p>0).length,lossD:days.filter(x=>x.p<0).length,beD:days.filter(x=>x.p===0).length,
+    curve,ddc,mdd,rf:mdd?net/-mdd:null,best:n?Math.max(...a.map(t=>t.pnl)):0,worst:n?Math.min(...a.map(t=>t.pnl)):0,
+    bw,bl,cur:cw?cw+'W':cl?cl+'L':'—',curL:cl>0,last5:a.slice(-5).map(t=>t.pnl),sharpe,sortino,
+    hyper:n?Math.round((ax.wl+ax.wr+ax.pf)/3*100):0,ax};
+}
+
+/* ---------- svg charts ---------- */
+function gauge(segs,text){
+  const cx=100,cy=92,r=72,id='g'+uid();
+  const P=f=>{const a=Math.PI*(1-f);return(cx+r*Math.cos(a)).toFixed(2)+' '+(cy-r*Math.sin(a)).toFixed(2)};
+  const arc=(a,b)=>`M${P(a)}A${r} ${r} 0 0 1 ${P(b)}`;
+  const col=[`url(#${id}a)`,`url(#${id}b)`,'#4a4a4a'];
+  let s=0,p='';
+  for(const[f,c]of segs){if(!(f>0))continue;const e=Math.min(1,s+f);p+=`<path d="${arc(s,e)}" stroke="${col[c]}" stroke-width="17" fill="none"/>`;s=e}
+  return`<svg class="gauge" viewBox="0 0 200 104"><defs>
+    <linearGradient id="${id}a" gradientUnits="userSpaceOnUse" x1="28" x2="172" y1="0" y2="0"><stop offset="0" stop-color="#157a66"/><stop offset=".45" stop-color="#1fae8f"/></linearGradient>
+    <linearGradient id="${id}b" gradientUnits="userSpaceOnUse" x1="28" x2="172" y1="0" y2="0"><stop offset=".45" stop-color="#f0304a"/><stop offset="1" stop-color="#5a1420"/></linearGradient></defs>
+    <path d="${arc(0,1)}" stroke="#252525" stroke-width="17" fill="none"/>${p}
+    <text x="100" y="${cy-2}" text-anchor="middle" font-size="21" font-weight="700" fill="#ececec" font-family="Inter,system-ui">${text}</text></svg>`;
+}
+function smooth(pts){
+  let d=`M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+    const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6],c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];
+    d+=` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+function area(series,color,dashed=true){
+  if(series.length<2)return'<div class="empty">No trades</div>';
+  const W=800,H=200,p=10,mn=Math.min(0,...series),mx=Math.max(0,...series),span=(mx-mn)||1;
+  const X=i=>p+i*(W-2*p)/(series.length-1),Y=v=>p+(mx-v)/span*(H-2*p);
+  const d=smooth(series.map((v,i)=>[X(i),Y(v)])),z=Y(0),id='a'+uid();
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity=".06"/></linearGradient></defs>
+    <path d="${d} L${X(series.length-1)},${z} L${X(0)},${z} Z" fill="url(#${id})"/>
+    ${dashed?`<line x1="${p}" x2="${W-p}" y1="${z}" y2="${z}" stroke="#444" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>`:''}
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="1.8" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function bars(vals){
+  if(!vals.length)return'<div class="empty">No trades</div>';
+  const W=400,H=200,p=30,mn=Math.min(0,...vals),mx=Math.max(0,...vals),span=(mx-mn)||1;
+  const Y=v=>p+(mx-v)/span*(H-2*p),n=vals.length,slot=(W-20)/n,bw=Math.min(slot*.78,300),id='b'+uid();
+  const rects=vals.map((v,i)=>{const y=Math.min(Y(v),Y(0)),h=Math.max(1,Math.abs(Y(v)-Y(0)));
+    return`<rect x="${(10+i*slot+(slot-bw)/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="url(#${id}${v<0?'r':'g'})"/>`}).join('');
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs>
+    <linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1fae8f" stop-opacity=".12"/><stop offset="1" stop-color="#1fae8f"/></linearGradient>
+    <linearGradient id="${id}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0304a" stop-opacity=".2"/><stop offset="1" stop-color="#f0304a"/></linearGradient></defs>${rects}</svg>`;
+}
+function radar(ax){
+  const cx=150,cy=122,R=78,A=[-90,30,150].map(d=>d*Math.PI/180);
+  const pt=(i,v)=>`${(cx+R*v*Math.cos(A[i])).toFixed(1)},${(cy+R*v*Math.sin(A[i])).toFixed(1)}`;
+  const tri=v=>[0,1,2].map(i=>pt(i,v)).join(' ');
+  const vals=[ax.wl,ax.wr,ax.pf].map(v=>Math.max(.05,v));
+  return`<svg class="radar" viewBox="0 0 300 230" font-family="Inter,system-ui" font-size="11" font-weight="600" fill="#ddd">
+    ${[1,.75,.5,.25].map(v=>`<polygon points="${tri(v)}" fill="none" stroke="${v===1?'#444':'#2e2e2e'}"/>`).join('')}
+    <polygon points="${vals.map((v,i)=>pt(i,v)).join(' ')}" fill="#1fae8f" fill-opacity=".35" stroke="#1fae8f" stroke-width="1.5"/>
+    <text x="${cx}" y="${cy-R-9}" text-anchor="middle">Win/Loss</text>
+    <text x="${cx+R*.866+6}" y="${cy+R/2+4}">Win %</text>
+    <text x="${cx-R*.866-6}" y="${cy+R/2+4}" text-anchor="end">PF</text></svg>`;
+}
+
+/* ---------- sections ---------- */
+const foot=(a,b)=>`<div class="ft"><span>${a}</span><span>${b}</span></div>`;
+const lr=(col,label,v,p)=>`<div class="lr"><i class="dot" style="background:${col}"></i><span>${label}</span><b>${v}</b>${p!==undefined?`<em>${p}</em>`:''}</div>`;
+const er=(col,label,val)=>`<div class="er"><i class="dot" style="background:${col}"></i><span>${label}</span><b>${val}</b><i class="q">i</i></div>`;
+
+function topCards(st,F){
+  const D=st.days.length,tot=st.gp+st.gl,mx=Math.max(st.aw,st.al)*1.5||1,avg=st.aw-st.al;
+  return`<div class="grid g4">
+  <div class="card"><div class="bd"><h3>Wins</h3><div class="lbl">Trades</div><div class="big">${st.n}</div>
+    ${gauge(st.n?[[st.w/st.n,0],[st.be/st.n,2],[st.l/st.n,1]]:[],pct(st.w,st.n))}
+    ${lr('var(--g)','Wins',st.w,pct(st.w,st.n))}${lr('#333','Breakeven',st.be,pct(st.be,st.n))}${lr('var(--r)','Losses',st.l,pct(st.l,st.n))}</div>${F}</div>
+  <div class="card"><div class="bd"><h3>Day wins</h3><div class="lbl">Trading days</div><div class="big">${D}</div>
+    ${gauge(D?[[st.winD/D,0],[st.beD/D,2],[st.lossD/D,1]]:[],pct(st.winD,D))}
+    ${lr('var(--g)','Win days',st.winD,pct(st.winD,D))}${lr('#333','Breakeven days',st.beD,pct(st.beD,D))}${lr('var(--r)','Loss days',st.lossD,pct(st.lossD,D))}</div>${F}</div>
+  <div class="card"><div class="bd"><h3>Profit Factor</h3><div class="lbl">Factor</div><div class="big">${isFinite(st.pf)?st.pf.toFixed(2):'∞'}</div>
+    ${gauge(tot?[[st.gp/tot,0],[st.gl/tot,1]]:[],isFinite(st.pf)?st.pf.toFixed(2):'∞')}
+    ${lr('var(--g)','Profits',money(st.gp,0))}${lr('var(--r)','Losses',money(st.gl,0))}${lr(dc(st.net),'Net',money(st.net,0))}</div>${F}</div>
+  <div class="card"><div class="bd"><h3>Avg Win/Loss</h3><div class="lbl">Average</div><div class="big ${cls(avg)}">${money(avg)}</div>
+    <div class="row" style="margin-top:34px"><span>Win</span><span class="grn">${money(st.aw,2,true)}</span></div>
+    <div class="hb"><i style="width:${st.aw/mx*100}%;background:linear-gradient(90deg,#22b597,#15604f)"></i></div>
+    <div class="row"><span>Loss</span><span class="red">${money(-st.al)}</span></div>
+    <div class="hb"><i style="width:${st.al/mx*100}%;background:linear-gradient(90deg,#f0304a,#4a1219)"></i></div>
+    <div class="row" style="border-top:1px solid var(--line);padding-top:14px"><span>Expectancy / trade</span><span class="${cls(st.exp)}">${money(st.exp)}</span></div></div>${F}</div>
+  </div>`;
+}
+
+function calendarHTML(){
+  const dm={};trades.filter(t=>accOk(t)&&stOk(t)).forEach(t=>{const d=tday(t.time);(dm[d]??={p:0,n:0});dm[d].p=r2(dm[d].p+t.pnl);dm[d].n++});
+  const y=S.month.getFullYear(),mo=S.month.getMonth(),first=new Date(y,mo,1),start=new Date(first);start.setDate(1-first.getDay());
+  const todayK=tday(new Date());
+  let h=['Sun','Mon','Tue','Wed','Thu','Fri','Sat','Week'].map(d=>`<div class="dh">${d}</div>`).join('');
+  let tot=0,wd=0,ld=0,tn=0,td=0;
+  for(let w=0;w<6;w++){
+    let wp=0,wn=0;
+    for(let i=0;i<7;i++){
+      const d=new Date(start);d.setDate(start.getDate()+w*7+i);
+      const k=ymd(d),v=dm[k],we=i===0||i===6;
+      if(d.getMonth()!==mo){h+='<div class="cell hatch out"></div>';continue}
+      if(v){wp+=v.p;wn+=v.n;tot+=v.p;tn+=v.n;td++;if(v.p>0)wd++;else if(v.p<0)ld++}
+      const c='cell'+(we&&!v?' hatch':'')+(v?(v.p>0?' pos':v.p<0?' neg':' be'):'')+(k>todayK?' fut':'')+(S.sel===k?' sel':'');
+      h+=`<div class="${c}" data-day="${k}"><span>${d.getDate()}</span>${v?`<b>${money(v.p,Number.isInteger(v.p)?0:2)}</b><small>${v.n} trade${v.n>1?'s':''}</small>`:''}${notes[k]?'<i class="nd"></i>':''}</div>`;
+    }
+    wp=r2(wp);
+    h+=`<div class="cell wk">${wn?`<b class="${cls(wp)}">${money(wp,Number.isInteger(wp)?0:2)}</b><small>${wn} trades</small>`:'—'}</div>`;
+  }
+  tot=r2(tot);
+  return`<div class="card"><div class="bd"><h3 style="margin-bottom:10px">P&amp;L Calendar</h3><div class="lbl">Total</div>
+    <div class="calhd"><div class="big ${cls(tot)}">${money(tot)}</div><div class="wl">Winning: <b class="grn" style="font-weight:500">${wd}</b> &nbsp;&nbsp; Losing: <b class="red" style="font-weight:500">${ld}</b></div></div>
+    <div class="cal">${h}</div></div>
+    <div class="ft calft"><div class="nav"><button data-act="mprev">‹</button><span>${first.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</span><button data-act="mnext">›</button><button class="tb" data-act="mtoday">Today</button></div>
+    <span>${td} trading days &nbsp;&nbsp; ${tn} trades</span></div></div>`;
+}
+
+function evalHTML(st){
+  const avgDay=st.days.length?st.net/st.days.length:0,wdl=st.winD-st.lossD;
+  const c=(v,t)=>`<span class="${cls(v)}">${t}</span>`;
+  return`<div class="card"><div class="bd ev"><h3>Evaluation</h3>
+    <h4>PERFORMANCE</h4>
+    ${er(dc(st.exp),'Expectancy',c(st.exp,money(st.exp)))}
+    ${er(dc(avgDay),'Average per trading day',c(avgDay,money(avgDay)))}
+    ${er(dc(st.best),'Biggest winner',c(st.best,money(st.best,2,true)))}
+    ${er(dc(st.worst),'Biggest loser',c(st.worst,money(st.worst)))}
+    <hr><h4>RISK</h4>
+    ${er(dc(st.mdd),'Max drawdown',c(st.mdd,money(st.mdd)))}
+    ${er(dc(st.rf??0),'Recovery factor',st.rf==null?'—':c(st.rf,st.rf.toFixed(2)+'×'))}
+    ${er(dc(st.sharpe??0),'Sharpe ratio',st.sharpe==null?'—':c(st.sharpe,st.sharpe.toFixed(2)))}
+    ${er(dc(st.sortino??0),'Sortino ratio',st.sortino==null?'—':c(st.sortino,st.sortino.toFixed(2)))}
+    <hr><h4>JOURNAL CONSISTENCY</h4>
+    ${er(dc(wdl),'Win days / loss days',c(wdl,`${st.winD} / ${st.lossD}`))}
+    ${er('transparent','Longest streak (W / L)',`${st.bw}W / ${st.bl}L`)}
+    ${er(st.curL?'var(--r)':st.cur!=='—'?'var(--g)':'transparent','Current streak',`<span class="${st.curL?'red':st.cur!=='—'?'grn':''}">${st.cur}</span>`)}
+    ${er('transparent','Last 5 trades',`<span class="l5">${st.last5.map(v=>`<i style="background:${v>0?'var(--g)':v<0?'var(--r)':'#555'}"></i>`).join('')||'—'}</span>`)}
+  </div></div>`;
+}
+
+function chartsHTML(st,F,rangeTxt){
+  const eqCol=st.net>=0?'#1fae8f':'#f0304a';
+  return`<div class="grid gm">
+    <div class="card"><div class="bd"><div class="eqh"><div><div class="lbl">Equity curve</div><div class="big ${cls(st.net)}" style="font-size:20px">${money(st.net)}</div><div class="lbl" style="margin-top:4px">${rangeTxt}</div></div>
+      <div class="ks"><div>WIN RATE<b>${(st.wr*100).toFixed(1)}%</b></div><div>PROFIT FACTOR<b>${isFinite(st.pf)?st.pf.toFixed(2):'∞'}</b></div><div>TRADES<b>${st.n}</b></div>
+      <div>BEST TRADE<b class="${cls(st.best)}">${money(st.best,2,true)}</b></div><div>WORST TRADE<b class="${cls(st.worst)}">${money(st.worst)}</b></div></div></div>
+      ${area(st.curve,eqCol)}</div>${F}</div>
+    <div class="card"><div class="bd"><h3>Performance</h3><div class="lbl">P&amp;L</div><div class="big ${cls(st.net)}">${money(st.net)}</div>${bars(st.days.map(d=>d.p))}</div>${F}</div>
+  </div>
+  <div class="grid g3">
+    <div class="card"><div class="bd"><h3>Hyper score</h3><div class="lbl">Score</div><div class="big">${st.hyper}</div>${st.n?radar(st.ax):'<div class="empty">No trades</div>'}</div>${F}</div>
+    <div class="card"><div class="bd"><h3>Volume</h3><div class="lbl">Trades</div><div class="big">${st.n}</div>${bars(st.days.map(d=>d.n))}</div>${F}</div>
+    <div class="card"><div class="bd"><h3>Drawdown</h3><div class="lbl">Max Drawdown</div><div class="big ${cls(st.mdd)}">${money(st.mdd)}</div>${area(st.ddc,'#f0304a',false)}</div>${F}</div>
+  </div>`;
+}
+
+function tableHTML(f){
+  f=[...f].sort((a,b)=>new Date(b.time)-new Date(a.time));
+  const pages=Math.max(1,Math.ceil(f.length/S.rows));S.page=Math.max(1,Math.min(S.page,pages));
+  const rows=f.slice((S.page-1)*S.rows,S.page*S.rows);
+  const tf=d=>new Date(d).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  const pr=v=>{const d=(String(v).split('.')[1]||'').length;return(+v).toFixed(Math.max(2,d))};
+  return`<div class="th"><h3>Trades</h3><label class="chk"><input type="checkbox" id="allAcc" ${S.acc==='all'?'checked':''}>All accounts</label>
+    <button class="btn" data-act="export">${I.dl}Export CSV</button></div>
+  <div class="tw"><table><thead><tr><th>Time (local)</th><th>Account</th><th>Contract</th><th>Side</th><th class="num">Qty</th><th class="num">Entry</th><th class="num">Exit</th><th>Duration</th><th class="num">Fee</th><th class="num">Comm</th><th class="num">P&amp;L <span class="mu" style="font-weight:400;font-size:9px">(net)</span></th><th></th></tr></thead><tbody>
+  ${rows.map(t=>`<tr><td class="mu2">${tf(t.time)}</td><td class="mu2">${esc(t.account)}</td><td><b>${esc(t.contract)}</b></td>
+    <td><span class="pill ${t.side==='Short'?'s':''}">${t.side==='Short'?'⌄':'⌃'} ${t.side}</span></td><td class="num">${t.qty}</td>
+    <td class="num">${pr(t.entry)}</td><td class="num">${pr(t.exit)}</td><td>${dur(t.duration)}</td>
+    <td class="num">${money(t.fee)}</td><td class="num">${money(t.comm)}</td><td class="num ${cls(t.pnl)}">${money(t.pnl,2,true)}</td>
+    <td><div class="acts"><button data-act="info" data-id="${t.id}" title="Details">${I.info}</button><button data-act="edit" data-id="${t.id}" title="Edit / note">${I.note}</button><button data-act="share" data-id="${t.id}" title="Share">${I.share}</button></div></td></tr>`).join('')
+  ||'<tr><td colspan="12" style="text-align:center;color:#555;padding:30px">No trades in this range</td></tr>'}
+  </tbody></table></div>
+  <div class="tf"><div class="pg"><button data-act="pprev">‹</button>Page <input id="pgIn" type="number" min="1" value="${S.page}"> of ${pages}<button data-act="pnext">›</button></div>
+  <div class="pg"><select id="rowsSel" class="rs">${[10,20,50,100].map(n=>`<option value="${n}" ${n===S.rows?'selected':''}>${n} rows</option>`).join('')}</select><span style="margin-left:8px">${f.length} records</span></div></div>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  const accs=[...new Set(trades.map(t=>t.account))].sort();
+  if(S.acc!=='all'&&!accs.includes(S.acc))S.acc='all';
+  $('#fAcc').innerHTML='<option value="all">All Accounts</option>'+accs.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
+  $('#fAcc').value=S.acc;$('#fStatus').value=S.status;$('#fRange').value=S.range;
+  const f=filtered(),st=stats(f),[a,b]=range();
+  const[fa,fb]=S.range==='all'&&!S.sel?(st.days.length?[st.days[0].d,st.days.at(-1).d]:[null,null]):[a,b];
+  const F=foot(fa?fdate(fa):'—',fb?fdate(fb):'—');
+  $('#ctx').textContent=`Statistics for ${S.acc==='all'?'All Accounts':S.acc} - ${S.sel?fdate(S.sel):RL[S.range]}`;
+  $('#app').innerHTML=topCards(st,F)+`<div class="grid gm">${calendarHTML()}${evalHTML(st)}</div>`+chartsHTML(st,F,fa?`${fdate(fa)} - ${fdate(fb)}`:'—')+`<div class="card">${tableHTML(f)}</div>`;
+}
+
+/* ---------- modals ---------- */
+const openModal=h=>{$('#mbox').innerHTML=h;$('#modal').classList.remove('hidden')};
+const closeModal=()=>$('#modal').classList.add('hidden');
+
+function tradeForm(t){
+  const isNew=!t;
+  t=t||{time:new Date().toISOString(),account:S.acc!=='all'?S.acc:(trades[0]?.account||''),contract:trades[0]?.contract||'',side:'Long',qty:1,entry:'',exit:'',duration:0,fee:settings.fee,comm:settings.comm,note:''};
+  const f=(k,l,type='text',x='')=>`<label>${l}<input id="f_${k}" type="${type}" value="${esc(t[k])}" ${x}></label>`;
+  openModal(`<h3>${isNew?'Add trade':'Edit trade'}</h3><div class="fg">
+    <label>Time<input id="f_time" type="datetime-local" step="1" value="${toLocalInput(t.time)}"></label>
+    ${f('account','Account')}${f('contract','Contract (e.g. GCZ6, NQZ6)')}
+    <label>Side<select id="f_side"><option ${t.side!=='Short'?'selected':''}>Long</option><option ${t.side==='Short'?'selected':''}>Short</option></select></label>
+    ${f('qty','Qty','number','min="1" step="1"')}${f('duration','Duration (sec)','number','min="0"')}
+    ${f('entry','Entry','number','step="any"')}${f('exit','Exit','number','step="any"')}
+    ${f('fee','Fee','number','step="any"')}${f('comm','Comm','number','step="any"')}
+    <label class="full">Net P&amp;L override (blank = auto from contract point value)<input id="f_pnl" type="number" step="any" value="${t.manual?t.pnl:''}"></label>
+    <label class="full">Note<textarea id="f_note" rows="3">${esc(t.note)}</textarea></label></div>
+    <div class="mact">${isNew?'':`<button class="btn dng" data-act="del" data-id="${t.id}">Delete</button>`}<div class="sp"></div>
+    <button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="save" data-id="${t.id||''}">Save</button></div>`);
+}
+function saveTrade(id){
+  const g=k=>$('#f_'+k).value,d=new Date(g('time'));
+  if(isNaN(d))return toast('Invalid time');
+  if(g('entry')===''||g('exit')==='')return toast('Entry and exit are required');
+  const t={id:id||uid(),time:d.toISOString(),account:g('account').trim()||'Default',contract:g('contract').trim().toUpperCase(),side:g('side'),
+    qty:Math.abs(+g('qty'))||1,entry:+g('entry'),exit:+g('exit'),duration:+g('duration')||0,fee:+g('fee')||0,comm:+g('comm')||0,note:g('note')};
+  const o=g('pnl');if(o!==''){t.pnl=r2(+o);t.manual=true}else t.pnl=calcPnl(t);
+  const i=trades.findIndex(x=>x.id===id);i>=0?trades[i]=t:trades.push(t);
+  save();closeModal();render();
+}
+function info(id){
+  const t=trades.find(x=>x.id===id);if(!t)return;
+  const pv=PV[root(t.contract)]??1,gross=r2(t.pnl+t.fee+t.comm),pts=r2((t.exit-t.entry)*(t.side==='Short'?-1:1));
+  openModal(`<h3>${esc(t.contract)} · ${t.side} ${t.qty}</h3><div class="kv">
+    <span>Time</span><b>${new Date(t.time).toLocaleString()}</b><span>Trading day</span><b>${fdate(tday(t.time))}</b>
+    <span>Account</span><b>${esc(t.account)}</b><span>Entry → Exit</span><b>${t.entry} → ${t.exit}</b>
+    <span>Points</span><b class="${cls(pts)}">${pts>0?'+':''}${pts}</b><span>Point value</span><b>$${pv}</b>
+    <span>Gross</span><b class="${cls(gross)}">${money(gross,2,true)}</b><span>Fees + comm</span><b>${money(t.fee+t.comm)}</b>
+    <span>Net</span><b class="${cls(t.pnl)}">${money(t.pnl,2,true)}</b><span>Duration</span><b>${dur(t.duration)}</b>
+    <span>Note</span><b style="font-weight:400;white-space:pre-wrap">${esc(t.note)||'—'}</b></div>
+    <div class="mact"><div class="sp"></div><button class="btn" data-act="edit" data-id="${t.id}">Edit</button><button class="btn pri" data-act="close">Close</button></div>`);
+}
+async function share(id){
+  const t=trades.find(x=>x.id===id);if(!t)return;
+  const text=`${t.contract} ${t.side} ${t.qty} @ ${t.entry} → ${t.exit} | ${money(t.pnl,2,true)} net | ${dur(t.duration)} | ${new Date(t.time).toLocaleString()}`;
+  try{if(navigator.share)await navigator.share({text});else{await navigator.clipboard.writeText(text);toast('Copied to clipboard')}}catch{}
+}
+function notesForm(){
+  const day=S.sel||tday(new Date());
+  openModal(`<h3>Notes · ${fdate(day)}</h3><textarea id="n_txt" rows="10" placeholder="Plan, mistakes, emotions, what to repeat…">${esc(notes[day]||'')}</textarea>
+    <p class="mu" style="margin-top:8px">Tip: click a calendar day first to write notes for that day.</p>
+    <div class="mact"><div class="sp"></div><button class="btn" data-act="close">Cancel</button><button class="btn pri" data-act="savenote" data-id="${day}">Save</button></div>`);
+}
+function importForm(){
+  openModal(`<h3>Import / Data</h3>
+    <p class="mu">Accepts a Tradovate <b>Performance</b> CSV (the format MyFundedFutures/Tradovate export) or this app's own CSV export. Tradovate P&amp;L is gross, so the fee/comm below are subtracted per contract.</p>
+    <div class="fg"><label class="full">Account name (for Tradovate CSV)<input id="i_acc" value="${esc(S.acc!=='all'?S.acc:(trades[0]?.account||''))}"></label>
+    <label>Fee / contract<input id="i_fee" type="number" step="any" value="${settings.fee}"></label>
+    <label>Comm / contract<input id="i_comm" type="number" step="any" value="${settings.comm}"></label>
+    <label class="full">CSV file<input id="i_file" type="file" accept=".csv,text/csv"></label></div>
+    <div class="mact"><button class="btn dng" data-act="clear">Clear all</button><button class="btn" data-act="demo">Load demo</button><div class="sp"></div>
+    <button class="btn" data-act="close">Close</button><button class="btn pri" data-act="doimport">Import</button></div>`);
+}
+function parseCSV(txt){
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<txt.length;i++){const c=txt[i];
+    if(q){if(c==='"'){if(txt[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===','){row.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&txt[i+1]==='\n')i++;row.push(f);rows.push(row);row=[];f=''}
+    else f+=c}
+  if(f||row.length){row.push(f);rows.push(row)}
+  return rows.filter(r=>r.some(x=>x.trim()));
+}
+const num=s=>{s=String(s??'').replace(/[$,\s]/g,'');const neg=/^\(.*\)$/.test(s)||s.startsWith('-');return(neg?-1:1)*Math.abs(parseFloat(s.replace(/[()\-]/g,''))||0)};
+async function doImport(){
+  settings.fee=+$('#i_fee').value||0;settings.comm=+$('#i_comm').value||0;save();
+  const file=$('#i_file').files[0];if(!file)return toast('Choose a CSV file');
+  const rows=parseCSV(await file.text());if(rows.length<2)return toast('CSV is empty');
+  const H=rows[0].map(h=>h.replace(/^\ufeff/,'').trim().toLowerCase()),ix=k=>H.indexOf(k),acc=$('#i_acc').value.trim()||'Imported',out=[];
+  if(ix('boughttimestamp')>=0){
+    for(const r of rows.slice(1)){const v=k=>r[ix(k)];
+      const q=Math.abs(num(v('qty')))||1,bt=new Date(v('boughttimestamp')),sd=new Date(v('soldtimestamp'));if(isNaN(bt)||isNaN(sd))continue;
+      const L=bt<=sd,t={id:uid(),time:(L?bt:sd).toISOString(),account:acc,contract:String(v('symbol')).trim(),side:L?'Long':'Short',qty:q,
+        entry:num(L?v('buyprice'):v('sellprice')),exit:num(L?v('sellprice'):v('buyprice')),duration:Math.abs(sd-bt)/1000,fee:r2(settings.fee*q),comm:r2(settings.comm*q),note:''};
+      t.pnl=ix('pnl')>=0?r2(num(v('pnl'))-t.fee-t.comm):calcPnl(t);out.push(t)}
+  }else if(ix('entry')>=0&&ix('exit')>=0){
+    for(const r of rows.slice(1)){const v=k=>ix(k)>=0?r[ix(k)]:'';
+      const d=new Date(v('time'));if(isNaN(d))continue;
+      const t={id:uid(),time:d.toISOString(),account:v('account')||acc,contract:v('contract')||v('symbol'),side:/short|sell/i.test(v('side'))?'Short':'Long',
+        qty:Math.abs(num(v('qty')))||1,entry:num(v('entry')),exit:num(v('exit')),duration:num(v('duration_sec')||v('duration')),
+        fee:ix('fee')>=0?num(v('fee')):settings.fee,comm:ix('comm')>=0?num(v('comm')):settings.comm,note:v('note')};
+      t.pnl=v('pnl')!==''?r2(num(v('pnl'))):calcPnl(t);out.push(t)}
+  }else return toast('Unrecognized CSV headers');
+  const have=new Set(trades.map(tkey)),add=out.filter(t=>!have.has(tkey(t)));
+  trades.push(...add);save();closeModal();render();
+  toast(`Imported ${add.length} trade${add.length===1?'':'s'}${out.length-add.length?` · ${out.length-add.length} duplicates skipped`:''}`);
+}
+function exportCSV(){
+  const f=filtered().sort((a,b)=>new Date(a.time)-new Date(b.time)),q=s=>/[",\n]/.test(s=String(s??''))?`"${s.replace(/"/g,'""')}"`:s;
+  const csv=['time,account,contract,side,qty,entry,exit,duration_sec,fee,comm,pnl,note',...f.map(t=>[t.time,t.account,t.contract,t.side,t.qty,t.entry,t.exit,t.duration,t.fee,t.comm,t.pnl,t.note].map(q).join(','))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`trades-${ymd(new Date())}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* ---------- events ---------- */
+$('#fAcc').onchange=e=>{S.acc=e.target.value;S.page=1;render()};
+$('#fStatus').onchange=e=>{S.status=e.target.value;S.page=1;render()};
+$('#fRange').onchange=e=>{S.range=e.target.value;S.sel=null;S.page=1;render()};
+document.addEventListener('change',e=>{
+  if(e.target.id==='rowsSel'){S.rows=+e.target.value;S.page=1;render()}
+  if(e.target.id==='pgIn'){S.page=+e.target.value||1;render()}
+  if(e.target.id==='allAcc'){const accs=[...new Set(trades.map(t=>t.account))].sort();S.acc=e.target.checked||!accs.length?'all':accs[0];S.page=1;render()}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+document.addEventListener('click',e=>{
+  if(e.target.id==='modal')return closeModal();
+  const day=e.target.closest('[data-day]');
+  if(day){S.sel=S.sel===day.dataset.day?null:day.dataset.day;S.page=1;render();return}
+  const b=e.target.closest('[data-act]');if(!b)return;const id=b.dataset.id;
+  const A={
+    mprev:()=>{S.month=new Date(S.month.getFullYear(),S.month.getMonth()-1,1);render()},
+    mnext:()=>{S.month=new Date(S.month.getFullYear(),S.month.getMonth()+1,1);render()},
+    mtoday:()=>{const t=pd(tday(new Date()));S.month=new Date(t.getFullYear(),t.getMonth(),1);S.sel=null;render()},
+    pprev:()=>{S.page--;render()},pnext:()=>{S.page++;render()},
+    add:()=>tradeForm(),edit:()=>tradeForm(trades.find(t=>t.id===id)),info:()=>info(id),share:()=>share(id),
+    notes:notesForm,import:importForm,export:exportCSV,close:closeModal,save:()=>saveTrade(id),doimport:doImport,
+    del:()=>{if(confirm('Delete this trade?')){trades=trades.filter(t=>t.id!==id);save();closeModal();render()}},
+    savenote:()=>{const v=$('#n_txt').value.trim();if(v)notes[id]=v;else delete notes[id];save();closeModal();render()},
+    demo:()=>{const have=new Set(trades.map(tkey));trades.push(...seed().filter(t=>!have.has(tkey(t))));save();closeModal();render()},
+    clear:()=>{if(confirm('Delete ALL trades and notes? Export a CSV first if you want a backup.')){trades=[];notes={};save();closeModal();render()}}
+  };
+  A[b.dataset.act]?.();
+});
+
+render();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
